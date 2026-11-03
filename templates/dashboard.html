@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Panel administrativo | AssetNext</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='support.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='premium-components.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') }}">ASSETNEXT <span>ADMIN</span></a>
+    <nav class="topbar-actions"><a href="{{ url_for('support_inbox') }}">Soporte{% if metrics.soporte_pendiente %}<b>{{ metrics.soporte_pendiente }}</b>{% endif %}</a><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="quiet">Cerrar sesión</button></form></nav>
+  </header>
+  <main class="shell">
+    <section class="page-title"><div><p class="eyebrow">OPERACIONES INTERNAS</p><h1>Usuarios y acceso</h1><p>Supervisa cuentas, beneficios y solicitudes con trazabilidad.</p></div><aside class="admin-live"><span class="live-pulse"></span><div><strong>Panel protegido</strong><small>Actualización en vivo cada minuto</small></div></aside></section>
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<p class="flash {{ category }}">{{ message }}</p>{% endfor %}{% endwith %}
+    <section class="metrics" data-pending-support="{{ metrics.soporte_pendiente }}"><article><span>Usuarios</span><strong>{{ metrics.total }}</strong></article><article><span>En línea ahora</span><strong>{{ metrics.online }}</strong></article><article><span>Premium activo</span><strong>{{ metrics.premium }}</strong></article><article><span>Consultas pendientes</span><strong>{{ metrics.soporte_pendiente }}</strong></article></section>
+    <section class="panel">
+      <form class="search" method="get"><label for="q">Buscar usuario</label><div><input id="q" name="q" value="{{ query }}" placeholder="Nombre o correo"><button>Buscar</button></div></form>
+      <div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Estado</th><th>Créditos</th><th>Racha</th><th>Premium</th><th></th></tr></thead><tbody>{% for user in users %}<tr><td><strong>{{ user.nombre }} {{ user.apellido }}</strong><small>{{ user.email }}</small></td><td>{% if user.online_now %}<span class="status online">En línea</span><small>Activo recientemente</small>{% elif user.esta_online %}<span class="status stale">Sin confirmar</span><small>Sin actividad reciente</small>{% else %}<span class="status offline">Desconectado</span>{% endif %}</td><td>{{ user.creditos }}</td><td>{{ user.racha_actual }} días</td><td>{% if user.premium_hasta and user.premium_hasta > now %}Activo{% else %}No activo{% endif %}</td><td><a class="button-link" href="{{ url_for('user_detail', user_id=user.id) }}">Gestionar</a></td></tr>{% else %}<tr><td colspan="6" class="empty">No se encontraron usuarios.</td></tr>{% endfor %}</tbody></table></div>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='dashboard-refresh.js') }}"></script>
+</body>
+</html>

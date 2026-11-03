@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Acceso administrativo | AssetNext</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='support.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='premium-components.css') }}">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <p class="brand">ASSETNEXT <span>ADMIN</span></p>
+    <p class="login-kicker">OPERACIONES PRIVADAS</p>
+    <h1>{% if pending %}Verifica tu acceso{% else %}Administración segura{% endif %}</h1>
+    <p class="muted">{% if pending %}Ingresa el código enviado a tu correo. Es único, personal y vence en cinco minutos.{% else %}Acceso exclusivo para el equipo autorizado de AssetNext.{% endif %}</p>
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<p class="flash {{ category }}" role="status">{{ message }}</p>{% endfor %}{% endwith %}
+    {% if pending %}
+      <form method="post" action="{{ url_for('verify_login_code') }}" class="stack">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <label for="admin-code">Código de 6 dígitos<input id="admin-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required autofocus></label>
+        <button type="submit">Verificar y entrar</button>
+      </form>
+      <form method="post" action="{{ url_for('request_login_code') }}" class="resend"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="email" value="{{ session.pending_admin_email }}"><button class="link-button" type="submit">Reenviar código</button></form>
+    {% else %}
+      <form method="post" action="{{ url_for('request_login_code') }}" class="stack">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <label for="admin-email">Correo administrador<input id="admin-email" type="email" name="email" autocomplete="email" required autofocus></label>
+        <button type="submit">Enviar código seguro</button>
+      </form>
+    {% endif %}
+    <div class="login-security"><strong>Acceso protegido</strong><span>Verificación por correo · sesión aislada · actividad auditada</span></div>
+  </main>
+</body>
+</html>

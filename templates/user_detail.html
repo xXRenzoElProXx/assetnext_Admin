@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ user.email }} | AssetNext Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='support.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard') }}">ASSETNEXT <span>ADMIN</span></a>
+    <nav class="topbar-actions"><a href="{{ url_for('support_inbox') }}">Soporte</a><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="quiet">Cerrar sesión</button></form></nav>
+  </header>
+  <main class="shell">
+    <a class="back" href="{{ url_for('dashboard') }}">Volver a usuarios</a>
+    <section class="user-hero"><div><p class="eyebrow">CUENTA</p><h1>{{ user.nombre }} {{ user.apellido }}</h1><p>{{ user.email }}</p></div><div>{% if user.online_now %}<span class="status online">En línea</span>{% else %}<span class="status offline">Desconectado</span>{% endif %}</div></section>
+    {% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<p class="flash {{ category }}">{{ message }}</p>{% endfor %}{% endwith %}
+    <section class="admin-grid">
+      <article class="panel"><h2>Créditos</h2><p class="number">{{ user.creditos }}</p><form method="post" action="{{ url_for('update_credits', user_id=user.id) }}" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Operación<select name="mode"><option value="add">Agregar</option><option value="subtract">Restar</option><option value="set">Establecer total</option></select></label><label>Cantidad<input type="number" name="amount" min="0" max="10000000" required></label><button>Guardar créditos</button></form></article>
+      <article class="panel"><h2>Racha</h2><p class="muted">Máximo histórico: {{ user.max_racha }} días</p><form method="post" action="{{ url_for('update_streak', user_id=user.id) }}" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Racha actual<input type="number" name="racha_actual" min="0" value="{{ user.racha_actual }}" required></label><label>Resurrecciones<input type="number" name="resurrecciones" min="0" value="{{ user.resurrecciones }}" required></label><button>Guardar racha</button></form></article>
+      <article class="panel"><h2>Premium</h2><p class="muted">{% if user.premium_active %}Vence {{ user.premium_hasta.strftime('%d/%m/%Y') }}{% else %}Sin Premium activo{% endif %}</p><form method="post" action="{{ url_for('update_premium', user_id=user.id) }}" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Días a añadir<input type="number" name="days" min="1" max="3650" value="30" required></label><button name="action" value="extend">Añadir días</button><button class="danger-outline" name="action" value="revoke">Retirar Premium</button></form></article>
+      <article class="panel danger-panel"><h2>Sesión</h2><p class="muted">Última actividad: {{ user.ultima_actividad.strftime('%d/%m/%Y %H:%M UTC') if user.ultima_actividad else 'Sin registro' }}</p><form method="post" action="{{ url_for('force_logout', user_id=user.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="danger">Cerrar sesión remota</button></form></article>
+      <article class="panel danger-panel"><h2>Eliminar cuenta</h2><p class="muted">Elimina permanentemente la cuenta y sus datos personales. No se puede deshacer.</p><form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><label>Escribe {{ user.email }} para confirmar<input name="confirm_email" type="email" autocomplete="off" required></label><button class="danger">Eliminar cuenta y datos</button></form></article>
+    </section>
+    <section class="panel audit"><h2>Auditoría reciente</h2><table><thead><tr><th>Acción</th><th>Detalle</th><th>Fecha</th></tr></thead><tbody>{% for event in events %}<tr><td>{{ event.accion }}</td><td>{{ event.detalles }}</td><td>{{ event.creado_en.strftime('%d/%m/%Y %H:%M UTC') }}</td></tr>{% else %}<tr><td colspan="3" class="empty">Aún no hay acciones administrativas.</td></tr>{% endfor %}</tbody></table></section>
+  </main>
+</body>
+</html>
